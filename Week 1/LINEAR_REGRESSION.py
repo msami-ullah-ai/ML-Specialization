@@ -1,93 +1,88 @@
-# print("Hello World")
-
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
 
-# x_train = np.array([1,2])
-# y_train = np.array([30000,50000])
+# Compute Cost
 
-# m = x_train.shape[0]
-
-# # plt.plot(x_train, y_train, marker = "x", color = "red")
-# # plt.title("Relationship")
-# # plt.xlabel("Years of Experience")
-# # plt.ylabel("Total Salary")
-# # plt.show()
-
-# w = 10000
-# b = 20000
-
-# f_wb = np.zeros(m)
-
-# for num in range(len(x_train)):
-#     f_wb[num] = w*x_train[num] + b
-
-# trained_model = f_wb
-
-# plt.scatter(x_train, trained_model, color="red", marker = "o")
-# plt.show()
-
-
-# x_train = np.array([1,2,3,4])
-# y_train = np.array([30000, 50000, 70000, 90000])
-
-# m = x_train.shape[0]
-
-# f_wb = np.zeros(m)
-
-# w = 20000
-# b = 9000
-
-# for num in range(m):
-#     f_wb[num] = w*x_train[num]+b
-
-# plt.scatter(x_train, y_train, c="r", marker="o")
-# plt.plot(x_train, f_wb, color = "orange")
-# # plt.show()
-
-
-# # IMPLEMENTING COST FUNCTION
-
-# x_train = np.array([1, 2, 3, 4, 5])  # Years of experience
-# y_train = np.array([40, 50, 65, 75, 85])  # Salary in $
-
-# def cost(x, y, w, b):
-#     m = x.shape[0]
-#     total_cost = 0
-
-#     for num in range(m):
-#         f_wb = w*x[num] + b
-#         error = (f_wb-y[num])**2
-#         total_cost+=error
-
-#     amount = total_cost/(2*m)
-#     return amount
-
-# result = cost(x_train, y_train, 20,1)
-# print(result)
-
-
-# Years of Experience (x)
-# x_train = np.array([1, 2, 3, 4, 5])
-
-# # Salaries (y) in $1000s
-# y_train = np.array([40, 50, 65, 75, 85])
-
-# def cost_function(x,y,w,b):
-#     m = x.shape[0]
-#     total = 0
-#     for i in range(m):
-#         f_wb = w*x[i]+b
-#         error = (f_wb-y[i])**2
-#         total+=error
+def compute_cost(x,y,w,b):
+    cost_squared = 0
+    m = x.shape[0]
+    for i in range(m):
+        f_wb = w*x[i] + b
+        cost_squared+= (f_wb-y[i])**2
     
-#     total_cost = total/(2*m)
-#     return total_cost
+    total_cost = 1/(2*m) * cost_squared
+    return total_cost
+
+#  Computing Gradient
+
+def compute_gradient(x,y,w,b):
+    m = x.shape[0]
+    d_dw = 0
+    d_db = 0
+
+    for i in range(m):
+        f_wb = w*x[i] + b
+        d_dw += (f_wb-y[i])*x[i]
+        d_db += f_wb-y[i]
+    
+    dj_dw = d_dw/m
+    dj_db = d_db/m
+
+    return dj_dw, dj_db
 
 
-# def predict(x, w, b):
-#     return w*x + b
+# Compute Gradient Descent
+
+def gradient_descent(x, y, w, b, num_iters, alpha, compute_cost, gradient_function):
+    j_history = [] # To see if cost function actually decreases
+
+    for i in range(num_iters):
+        dj_dw, dj_db = gradient_function(x,y,w,b)
+        w = w - alpha* dj_dw
+        b = b - alpha* dj_db
+
+        cost = compute_cost(x,y,w,b)
+        j_history.append(cost)
+
+    return w,b,j_history
 
 
-# Linear Regression, Gradient Descent
+# PROJECT IMPLEMENTION
+
+data = pd.read_csv("house_size_price.csv")
+
+x = data["Size_sqft"].values
+y = data["Price"].values
+
+w = 0
+b = 0
+alpha = 0.0000001
+iterations = 1000
+
+final_w, final_b, history = gradient_descent(x, y, w, b, iterations, alpha,
+                                              compute_cost, compute_gradient)
+
+print(f"Final parameters: w = {final_w}, b = {final_b}")
+print(f"First cost: {history[0]}")
+print(f"Final cost: {history[-1]}")
+
+
+# 5. Plot cost vs iterations
+
+plt.plot(history)
+plt.xlabel("Iterations")
+plt.ylabel("Cost")
+plt.title("Cost vs Iterations")
+plt.show()
+
+# Fitted Line
+
+plt.scatter(x, y, label="Data")
+plt.plot(x, final_w * x + final_b, color="red", label="Fitted line")
+plt.xlabel("Size (sqft)")
+plt.ylabel("Price ($1000s)")
+plt.legend()
+plt.show()
+
+
